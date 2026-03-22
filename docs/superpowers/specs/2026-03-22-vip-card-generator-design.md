@@ -54,9 +54,9 @@ This is a frontend-only change — no new API endpoints, no new dependencies. Th
 - "VIP Health Card" — white, 13px, font-weight 800
 - "Multispeciality Healthcare" — white 38% opacity, 7.5px
 - "Card Holder" label — gold 55% opacity, 7.5px uppercase
-- Member name — white, 13px, font-weight 700
+- Member name — white, 13px, font-weight 700 (fallback: first member's name, or "Card Holder" if `members` is empty)
 - Card number — white 45% opacity, 9px monospace, letter-spacing 1.5px
-- Validity — gold 50% opacity, 7px
+- Validity — gold 50% opacity, 7px — shows expiry date only (e.g. "Valid thru: Jan 2026"); issued date is not shown on the front face
 
 **QR box:**
 - `52×52px` white box, `border-radius: 6px`
@@ -111,7 +111,7 @@ Both cards are displayed side by side (flex row, 40px gap). Each has a dashed cu
 - `@media print`: hide page title/subtitle/buttons, show only cards
 - Cards sized to exact 85.6×54mm using `width: 85.6mm; height: 54mm`
 - `page-break-inside: avoid` on each card
-- Cards arranged for double-sided printing (front page 1, back page 2) or side-by-side for manual cut-and-fold
+- Print layout: front and back printed **side by side on one page** for manual cut-and-fold. This is the standard POC approach — no `@page` break between sides. Staff cuts out both faces and folds/laminates.
 
 ---
 
@@ -128,15 +128,15 @@ Replace the `handlePrintQr` function body. The function already:
 
 We keep the same pattern, just replace the written HTML with the full branded card design. The QR base64 (`qr`) is already available — inject it as the `src` of the QR `<img>`.
 
-**Logo:** `PHLogo.png` is embedded as a base64 data URL, hardcoded in the HTML string. Read the file at build/dev time and inject it. Since this runs in the browser (not server), use a Vite raw/inline import:
+**Error handling for QR fetch:** If `getCardQr` throws (network error, server error), catch the error and show an inline error message in the admin portal (same pattern as other errors in `CardDetail`) — do not open the print window. The existing try/catch pattern in the component should be extended to cover this.
 
-```ts
-// At top of CardDetail.tsx
-import logoBase64 from '/PHLogo.png?url'
-// or embed via a helper that returns the base64 string
+**Card status:** The card generator works for all statuses (`active`, `expired`, `suspended`). No status watermark is shown on the generated card — the card is a physical artefact and its validity is checked by the reception portal at scan time. The "Generate Card" button is visible regardless of status (admin may need to reprint for any card).
+
+**Logo:** Use the public URL `/PHLogo.png` directly as the `<img src>` in the written HTML — the new window shares the same origin (`window.open('', '_blank')` on the same host), so the browser resolves it correctly without any base64 embedding. This is the simplest approach and requires no Vite import changes.
+
+```html
+<img src="/PHLogo.png" width="36" height="36" style="object-fit:contain;" />
 ```
-
-Alternatively (simpler for POC): reference the logo via its public URL (`/PHLogo.png`) directly in the `<img src>` — the new window shares the same origin, so it resolves correctly without base64 embedding.
 
 **Button label:** Change "⬇ Print QR" → "🪪 Generate Card"
 
@@ -152,14 +152,15 @@ Alternatively (simpler for POC): reference the logo via its public URL (`/PHLogo
 
 All data comes from the existing `CardDetail` state object (`card`):
 
-| Field | Source |
-|-------|--------|
-| Primary member name | `card.members.find(m => m.is_primary).name` |
-| Card number | `card.card_number` |
-| Issued date | `card.issued_date` |
-| Expiry date | `card.expiry_date` |
-| Branch | `card.branch` |
-| QR image | `getCardQr(id)` → `{ qr }` (base64 PNG) |
+| Field | Source | Notes |
+|-------|--------|-------|
+| Primary member name | `card.members.find(m => m.is_primary)?.name ?? card.members[0]?.name ?? 'Card Holder'` | Safe fallback chain |
+| Card number | `card.card_number` | — |
+| Expiry date | `card.expiry_date` | Shown on front as "Valid thru: MMM YYYY" |
+| Branch | `card.branch` | Shown on back footer |
+| QR image | `getCardQr(id)` → `{ qr }` (base64 PNG) | — |
+
+**Note:** `card.issued_date` is not displayed on the card (front or back). The expiry date alone is sufficient for the patient.
 
 ---
 
@@ -177,7 +178,7 @@ All data comes from the existing `CardDetail` state object (`card`):
 ## 9. Success Criteria
 
 1. Admin clicks "Generate Card" on any card detail page
-2. A new tab opens within 1 second showing both card faces
+2. A new tab opens promptly (on local dev server) showing both card faces
 3. Front shows: real logo in circular gold badge, member name, card number, validity, QR code
 4. Back shows: benefit pills, policy note, branch list, watermark
 5. Clicking "Print Card" opens the browser print dialog with cards correctly sized
