@@ -5,12 +5,18 @@ import { verifyToken, requireRole } from '../middleware/auth.js';
 const router = Router();
 router.use(verifyToken, requireRole('admin'));
 
-router.get('/', (_req, res) => {
-  const total = (db.prepare('SELECT COUNT(*) as n FROM cards').get() as { n: number }).n;
-  const active = (db.prepare("SELECT COUNT(*) as n FROM cards WHERE status = 'active'").get() as { n: number }).n;
-  const expired = (db.prepare("SELECT COUNT(*) as n FROM cards WHERE status = 'expired'").get() as { n: number }).n;
-  const suspended = (db.prepare("SELECT COUNT(*) as n FROM cards WHERE status = 'suspended'").get() as { n: number }).n;
-  res.json({ total, active, expired, suspended });
+router.get('/', async (_req, res) => {
+  const { count: total } = await db.from('cards').select('*', { count: 'exact', head: true });
+  const { count: active } = await db.from('cards').select('*', { count: 'exact', head: true }).eq('status', 'active');
+  const { count: expired } = await db.from('cards').select('*', { count: 'exact', head: true }).eq('status', 'expired');
+  const { count: suspended } = await db.from('cards').select('*', { count: 'exact', head: true }).eq('status', 'suspended');
+
+  res.json({
+    total: total || 0,
+    active: active || 0,
+    expired: expired || 0,
+    suspended: suspended || 0,
+  });
 });
 
 export default router;

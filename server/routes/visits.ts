@@ -5,7 +5,7 @@ import { verifyToken } from '../middleware/auth.js';
 const router = Router();
 router.use(verifyToken);
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { card_id, member_id, service_type, branch } = req.body as {
     card_id: number; member_id: number; service_type: string; branch: string;
   };
@@ -16,17 +16,31 @@ router.post('/', (req, res) => {
   }
 
   // Verify card is active
-  const card = db.prepare("SELECT status FROM cards WHERE id = ?").get(card_id) as { status: string } | undefined;
+  const { data: card } = await db
+    .from('cards')
+    .select('status')
+    .eq('id', card_id)
+    .maybeSingle();
+
   if (!card || card.status !== 'active') {
     res.status(403).json({ error: 'Card is not active' });
     return;
   }
 
-  const result = db.prepare(
-    'INSERT INTO visits (card_id, member_id, service_type, branch, receptionist_id) VALUES (?, ?, ?, ?, ?)'
-  ).run(card_id, member_id, service_type, branch, req.user!.user_id);
+  const { data: visit, error } = await db
+    .from('visits')
+    .insert({
+      card_id,
+      member_id,
+      service_type,
+      branch,
+      receptionist_id: req.user!.user_id,
+    })
+    .select('id')
+    .single();
 
-  res.status(201).json({ visit_id: result.lastInsertRowid });
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.status(201).json({ visit_id: visit.id });
 });
 
 export default router;

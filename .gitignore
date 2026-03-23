@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment files with secrets
+.env
+.env.local
+.env*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Next.js
+.next/
+out/
+
+# Build output
+dist/
+build/
+
+# Superpowers plugin state
+.superpowers/

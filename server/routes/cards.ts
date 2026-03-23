@@ -7,20 +7,37 @@ import { generateCardNumber } from '../utils/cardNumber.js';
 const router = Router();
 router.use(verifyToken, requireRole('admin'));
 
-// List all cards with primary name
-router.get('/', (_req, res) => {
-  const cards = db.prepare(`
-    SELECT c.*,
-      (SELECT COUNT(*) FROM members WHERE card_id = c.id) AS member_count,
-      (SELECT COUNT(*) FROM visits WHERE card_id = c.id) AS visit_count,
-      (SELECT name FROM members WHERE card_id = c.id AND is_primary = 1 LIMIT 1) AS primary_name
-    FROM cards c ORDER BY c.created_at DESC
-  `).all();
-  res.json(cards);
+// List all cards with primary name, member count, visit count
+router.get('/', async (_req, res) => {
+  const { data: cards, error } = await db
+    .from('cards')
+    .select('*, members(id, name, is_primary), visits(id)')
+    .order('created_at', { ascending: false });
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  const result = (cards || []).map((c) => {
+    const primaryMember = c.members?.find((m: { is_primary: boolean }) => m.is_primary);
+    return {
+      id: c.id,
+      card_number: c.card_number,
+      aadhaar_last4: c.aadhaar_last4,
+      issued_date: c.issued_date,
+      expiry_date: c.expiry_date,
+      status: c.status,
+      branch: c.branch,
+      created_at: c.created_at,
+      member_count: c.members?.length || 0,
+      visit_count: c.visits?.length || 0,
+      primary_name: primaryMember?.name || null,
+    };
+  });
+
+  res.json(result);
 });
 
 // Create card + members
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { aadhaar_last4, branch, issued_date, members } = req.body as {
     aadhaar_last4: string;
     branch: string;
@@ -37,61 +54,101 @@ router.post('/', (req, res) => {
     return;
   }
 
-  const card_number = generateCardNumber();
+  const card_number = await generateCardNumber();
   const issuedDate = issued_date || new Date().toISOString().split('T')[0];
   const expiryDate = new Date(issuedDate);
   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-  const insertCard = db.prepare(
-    'INSERT INTO cards (card_number, aadhaar_last4, issued_date, expiry_date, branch) VALUES (?, ?, ?, ?, ?)'
-  );
-  const insertMember = db.prepare(
-    'INSERT INTO members (card_id, name, relation, dob, is_primary) VALUES (?, ?, ?, ?, ?)'
-  );
+  const { data: card, error: cardError } = await db
+    .from('cards')
+    .insert({
+      card_number,
+      aadhaar_last4,
+      issued_date: issuedDate,
+      expiry_date: expiryDate.toISOString().split('T')[0],
+      branch,
+    })
+    .select('id')
+    .single();
 
-  const createCard = db.transaction(() => {
-    const result = insertCard.run(card_number, aadhaar_last4, issuedDate, expiryDate.toISOString().split('T')[0], branch);
-    const card_id = result.lastInsertRowid as number;
-    for (const m of members) {
-      insertMember.run(card_id, m.name, m.relation, m.dob || null, m.is_primary);
-    }
-    return card_id;
-  });
+  if (cardError || !card) {
+    res.status(500).json({ error: cardError?.message || 'Failed to create card' });
+    return;
+  }
 
-  const card_id = createCard();
-  res.status(201).json({ card_id, card_number });
+  const memberRows = members.map((m) => ({
+    card_id: card.id,
+    name: m.name,
+    relation: m.relation,
+    dob: m.dob || null,
+    is_primary: Boolean(m.is_primary),
+  }));
+
+  const { error: memberError } = await db.from('members').insert(memberRows);
+  if (memberError) {
+    res.status(500).json({ error: memberError.message });
+    return;
+  }
+
+  res.status(201).json({ card_id: card.id, card_number });
 });
 
 // Get single card with members and visits
-router.get('/:id', (req, res) => {
-  const card = db.prepare('SELECT * FROM cards WHERE id = ?').get(req.params.id);
-  if (!card) { res.status(404).json({ error: 'Card not found' }); return; }
+router.get('/:id', async (req, res) => {
+  const { data: card, error } = await db
+    .from('cards')
+    .select('*')
+    .eq('id', req.params.id)
+    .maybeSingle();
 
-  const members = db.prepare('SELECT * FROM members WHERE card_id = ? ORDER BY is_primary DESC').all(req.params.id);
-  const visits = db.prepare(`
-    SELECT v.*, m.name as member_name
-    FROM visits v JOIN members m ON v.member_id = m.id
-    WHERE v.card_id = ? ORDER BY v.visited_at DESC
-  `).all(req.params.id);
+  if (error || !card) { res.status(404).json({ error: 'Card not found' }); return; }
 
-  res.json({ ...card as object, members, visits });
+  const { data: members } = await db
+    .from('members')
+    .select('*')
+    .eq('card_id', card.id)
+    .order('is_primary', { ascending: false });
+
+  const { data: visits } = await db
+    .from('visits')
+    .select('*, members(name)')
+    .eq('card_id', card.id)
+    .order('visited_at', { ascending: false });
+
+  const formattedVisits = (visits || []).map((v) => ({
+    ...v,
+    member_name: v.members?.name || null,
+    members: undefined,
+  }));
+
+  res.json({ ...card, members: members || [], visits: formattedVisits });
 });
 
 // Update card status
-router.patch('/:id', (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { status } = req.body as { status: string };
   if (!['active', 'suspended'].includes(status)) {
     res.status(400).json({ error: 'status must be active or suspended' });
     return;
   }
-  db.prepare('UPDATE cards SET status = ? WHERE id = ?').run(status, req.params.id);
+
+  const { error } = await db
+    .from('cards')
+    .update({ status })
+    .eq('id', req.params.id);
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
   res.json({ ok: true });
 });
 
 // Generate QR code
 router.get('/:id/qr', async (req, res) => {
-  const card = db.prepare('SELECT card_number FROM cards WHERE id = ?').get(req.params.id) as
-    | { card_number: string } | undefined;
+  const { data: card } = await db
+    .from('cards')
+    .select('card_number')
+    .eq('id', req.params.id)
+    .maybeSingle();
+
   if (!card) { res.status(404).json({ error: 'Card not found' }); return; }
 
   const dataUrl = await QRCode.toDataURL(card.card_number, { width: 300, margin: 2 });
