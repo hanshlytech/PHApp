@@ -14,7 +14,7 @@ const SERVICE_ICONS: Record<string, string> = {
   USG: 'ecg',
 };
 
-export default function ServiceOption({ service, label, icon, selected, onClick }: ServiceOptionProps) {
+export default function ServiceOption({ service, label, icon: _icon, selected, onClick }: ServiceOptionProps) {
   const materialIcon = SERVICE_ICONS[service] || 'medical_services';
   return (
     <button

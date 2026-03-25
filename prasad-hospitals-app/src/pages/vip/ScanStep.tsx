@@ -54,7 +54,7 @@ function ScanStepInner() {
   const [pendingNav, setPendingNav] = useState(false);
 
   // DEBUG: visible log for mobile (no dev tools)
-  const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [_debugLog, setDebugLog] = useState<string[]>([]);
   function addDebug(msg: string) {
     console.log('[ScanStep]', msg);
     setDebugLog(prev => [...prev.slice(-14), `${new Date().toLocaleTimeString()}: ${msg}`]);
