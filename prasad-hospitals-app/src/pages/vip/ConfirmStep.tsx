@@ -1,4 +1,3 @@
-// src/pages/vip/ConfirmStep.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVipWizard } from '../../context/VipWizardContext';
@@ -14,7 +13,7 @@ export default function ConfirmStep() {
   }, [card, selectedMember, selectedService, navigate]);
 
   if (!card || !selectedMember || !selectedService) return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Redirecting...</div>
+    <div className="min-h-screen bg-[#0f1d2f] flex items-center justify-center text-slate-500">Redirecting...</div>
   );
 
   const now = new Date().toLocaleString('en-IN', {
@@ -28,30 +27,29 @@ export default function ConfirmStep() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm flex flex-col items-center gap-6 text-center">
-        {/* Checkmark */}
-        <div className="flex items-center justify-center w-24 h-24 rounded-full bg-green-900/40 border-2 border-green-500">
-          <span className="text-green-400 text-5xl leading-none">✓</span>
+    <div className="min-h-screen bg-[#0f1d2f] flex flex-col items-center justify-center px-4 py-8">
+      <div className="max-w-xl w-full bg-white/5 backdrop-blur-2xl rounded-[3rem] p-12 shadow-2xl ring-1 ring-white/10 border-t border-white/20">
+        {/* Success icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-[#8cda5a]/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-5xl text-[#8cda5a]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          </div>
         </div>
 
-        {/* Heading */}
-        <h1 className="text-3xl font-bold text-white">Visit Logged!</h1>
+        <h2 className="text-3xl font-headline font-black text-white mb-8 text-center">Visit Logged!</h2>
 
-        {/* Details card */}
-        <div className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-5 flex flex-col gap-3 text-left">
-          <DetailRow label="Member" value={selectedMember.name} />
+        <div className="space-y-6 mb-10">
+          <DetailRow label="Patient" value={selectedMember.name} />
           <DetailRow label="Service" value={selectedService} />
-          <DetailRow label="Card" value={card.card_number} mono />
+          <DetailRow label="Card" value={card.card_number} />
           <DetailRow label="Branch" value={card.branch} />
           <DetailRow label="Time" value={now} />
         </div>
 
-        {/* Scan next button */}
         <button
           type="button"
           onClick={handleScanNext}
-          className="w-full py-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-base transition-colors"
+          className="w-full py-6 bg-gradient-to-r from-[#8cda5a] to-[#6ab539] text-[#0a2100] rounded-2xl font-headline font-black text-xl uppercase tracking-widest shadow-[0_20px_40px_rgba(140,218,90,0.3)] hover:scale-[1.02] transition-transform active:scale-95"
         >
           Scan Next Card
         </button>
@@ -60,21 +58,11 @@ export default function ConfirmStep() {
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-slate-500 text-sm shrink-0">{label}</span>
-      <span className={`text-slate-200 text-sm text-right ${mono ? 'font-mono' : 'font-medium'}`}>
-        {value}
-      </span>
+    <div className="flex justify-between items-center py-4 border-b border-white/5">
+      <span className="text-slate-400 uppercase tracking-widest text-xs font-bold">{label}</span>
+      <span className="text-white font-bold text-lg">{value}</span>
     </div>
   );
 }

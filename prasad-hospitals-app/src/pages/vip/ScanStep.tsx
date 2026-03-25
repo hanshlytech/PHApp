@@ -25,12 +25,12 @@ class ScanErrorBoundary extends Component<{ children: ReactNode }, { error: stri
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: 24, background: '#0f172a', minHeight: '100vh', color: '#fca5a5', fontFamily: 'monospace' }}>
+        <div style={{ padding: 24, background: '#0f1d2f', minHeight: '100vh', color: '#fca5a5', fontFamily: 'monospace' }}>
           <h2 style={{ color: '#fff', marginBottom: 8 }}>Something went wrong</h2>
           <p style={{ fontSize: 14 }}>{this.state.error}</p>
           <button
             onClick={() => { this.setState({ error: null }); window.location.reload(); }}
-            style={{ marginTop: 16, padding: '8px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 8 }}
+            style={{ marginTop: 16, padding: '8px 16px', background: '#8cda5a', color: '#0a2100', border: 'none', borderRadius: 8 }}
           >
             Reload
           </button>
@@ -173,67 +173,72 @@ function ScanStepInner() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center px-4 py-8">
-      <div className="w-full max-w-md flex flex-col gap-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Scan VIP Card</h1>
-          <p className="text-slate-400 text-sm mt-1">
+    <div className="min-h-screen bg-[#0f1d2f] flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-lg flex flex-col gap-8">
+        {/* Header */}
+        <div>
+          <span className="text-[#8cda5a] font-headline font-extrabold uppercase tracking-widest text-sm">Priority Access</span>
+          <h1 className="text-4xl font-headline font-black text-white leading-tight mt-2">Scan VIP Card</h1>
+          <p className="text-slate-400 text-sm mt-2">
             Point camera at QR code or use the hardware scanner
           </p>
         </div>
 
-        <div className="rounded-xl overflow-hidden border border-slate-700 bg-slate-900">
+        {/* Scanner */}
+        <div className="relative rounded-3xl overflow-hidden border-4 border-[#8cda5a] bg-slate-800/20">
           <div id="qr-reader" className="w-full" />
           {!scannerStarted && (
             <div className="flex items-center justify-center h-48 text-slate-500 text-sm">
               Camera unavailable — use input below
             </div>
           )}
+          {/* Corner overlays */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#8cda5a]" />
+          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#8cda5a]" />
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#8cda5a]" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#8cda5a]" />
         </div>
 
+        {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-slate-800" />
+          <div className="flex-1 h-px bg-white/10" />
           <span className="text-slate-500 text-xs uppercase tracking-widest">or</span>
-          <div className="flex-1 h-px bg-slate-800" />
+          <div className="flex-1 h-px bg-white/10" />
         </div>
 
+        {/* Manual input */}
         <input
           ref={inputRef}
           type="text"
-          placeholder="Or type / scan card ID here"
+          placeholder="Type / scan card ID here"
           onKeyDown={handleKeyDown}
           disabled={loading}
-          className="w-full bg-slate-900 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+          className="w-full bg-white/10 border border-white/10 text-white placeholder-slate-500 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[#8cda5a]/40 disabled:opacity-50"
           autoFocus
         />
 
+        {/* Status */}
         {loading && (
-          <p className="text-center text-sky-400 font-medium">Scanning...</p>
+          <p className="text-center text-[#8cda5a] font-headline font-bold">Scanning...</p>
         )}
-
         {error && (
           <div className="bg-red-900/30 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">
             {error}
           </div>
         )}
+        {!loading && !error && (
+          <div className="flex items-center gap-3 px-2">
+            <span className="w-2 h-2 rounded-full bg-[#8cda5a]" />
+            <span className="text-xs font-bold text-[#8cda5a] uppercase tracking-widest">Awaiting Input...</span>
+          </div>
+        )}
 
-        {/* DEBUG — visible on mobile since there's no dev console */}
-        <div className="bg-slate-900 border border-yellow-700 rounded-xl px-3 py-2 text-xs font-mono text-yellow-300 space-y-0.5">
-          <p className="text-yellow-500 font-semibold mb-1">DEBUG (mobile):</p>
-          {debugLog.length === 0
-            ? <p className="text-slate-500">waiting for events...</p>
-            : debugLog.map((line, i) => <p key={i}>{line}</p>)
-          }
-        </div>
-
+        {/* Logout */}
         <div className="mt-auto pt-4">
           <button
             type="button"
-            onClick={() => {
-              logout();
-              navigate('/vip/login');
-            }}
-            className="w-full py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-colors text-sm"
+            onClick={() => { logout(); navigate('/vip/login'); }}
+            className="w-full py-3 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-colors text-sm"
           >
             Logout
           </button>

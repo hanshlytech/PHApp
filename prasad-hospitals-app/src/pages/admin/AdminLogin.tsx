@@ -26,32 +26,35 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">Prasad Hospitals</h1>
-          <p className="text-violet-400 text-sm mt-1 tracking-widest uppercase">Admin Portal</p>
+          <div className="w-16 h-16 rounded-xl signature-gradient flex items-center justify-center text-white mx-auto mb-4">
+            <span className="material-symbols-outlined text-3xl">clinical_notes</span>
+          </div>
+          <h1 className="text-2xl font-headline font-bold text-primary">Prasad Hospitals</h1>
+          <p className="text-on-surface-variant text-sm mt-1 tracking-widest uppercase font-semibold">Admin Portal</p>
         </div>
-        <form onSubmit={handleSubmit} className="bg-slate-800 rounded-xl p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Username</label>
+        <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-xl p-8 space-y-5 shadow-[0_12px_24px_rgba(25,28,29,0.06)] border border-outline-variant/10">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Username</label>
             <input
               type="text" value={username} onChange={e => setUsername(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-surface-container-highest border-none rounded-lg px-4 py-3 text-on-surface text-sm focus:ring-2 focus:ring-primary/40 focus:bg-surface-container-lowest transition-all"
               placeholder="admin"
             />
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Password</label>
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-surface-container-highest border-none rounded-lg px-4 py-3 text-on-surface text-sm focus:ring-2 focus:ring-primary/40 focus:bg-surface-container-lowest transition-all"
               placeholder="••••••••"
             />
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-error text-sm">{error}</p>}
           <button type="submit" disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors">
+            className="w-full signature-gradient text-white font-headline font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:opacity-50">
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>

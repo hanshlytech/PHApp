@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCards } from '../../api/cards';
 import { getStats } from '../../api/stats';
-import { useAuth } from '../../hooks/useAuth';
 import StatsRow from '../../components/admin/StatsRow';
 import CardRow from '../../components/admin/CardRow';
+import AdminLayout from '../../components/admin/AdminLayout';
 import type { Card } from '../../api/cards';
 import type { Stats } from '../../api/stats';
 
 export default function CardsList() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
   const [cards, setCards] = useState<Card[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, expired: 0, suspended: 0 });
@@ -34,74 +33,75 @@ export default function CardsList() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">VIP Cards</h1>
-            <p className="text-slate-500 text-sm">Prasad Hospitals Admin</p>
+    <AdminLayout>
+      {/* Stats Bento Grid */}
+      <StatsRow stats={stats} />
+
+      {/* Table Actions */}
+      <section className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 bg-surface-container-low p-6 rounded-xl">
+        <div className="flex-1 flex flex-col md:flex-row gap-4 w-full">
+          <div className="relative flex-1 max-w-md">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name, ID or branch..."
+              className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-body shadow-sm"
+            />
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate('/admin/cards/new')}
-              className="bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-3 bg-surface-container-lowest border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-body shadow-sm min-w-[160px]"
             >
-              + New Card
-            </button>
-            <button
-              onClick={logout}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm px-3 py-2 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="suspended">Suspended</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
           </div>
         </div>
+        <button
+          onClick={() => navigate('/admin/cards/new')}
+          className="signature-gradient text-white px-6 py-3 rounded-lg flex items-center gap-2 font-headline font-bold text-sm shadow-lg hover:shadow-primary/20 transition-all active:scale-95 duration-200"
+        >
+          <span className="material-symbols-outlined text-lg">add</span>
+          New Card
+        </button>
+      </section>
 
-        <StatsRow stats={stats} />
-
-        <div className="flex gap-3 mb-4">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or card ID..."
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
-          />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-violet-500"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
-
-        {loading && <div className="text-slate-500 text-sm py-8 text-center">Loading...</div>}
-        {error && <div className="text-red-400 text-sm py-4">{error}</div>}
-        {!loading && !error && (
-          <div className="bg-slate-900 rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-800">
-                  {['Card Holder', 'Card ID', 'Expires', 'Branch', 'Status', 'Visits'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
+      {/* Data Table */}
+      {loading && (
+        <div className="text-on-surface-variant text-sm py-8 text-center">Loading...</div>
+      )}
+      {error && (
+        <div className="text-error text-sm py-4">{error}</div>
+      )}
+      {!loading && !error && (
+        <section className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_12px_24px_rgba(25,28,29,0.04)] border border-white">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-surface-container-low border-b border-surface-variant/20">
+                <tr>
+                  {['Member Name', 'Card ID', 'Expiry Date', 'Branch', 'Status', 'Visits'].map(h => (
+                    <th key={h} className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant font-label">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-surface-container">
                 {filtered.map(c => <CardRow key={c.id} card={c} />)}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">No cards found</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant text-sm">No cards found</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-    </div>
+        </section>
+      )}
+    </AdminLayout>
   );
 }

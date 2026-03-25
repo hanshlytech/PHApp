@@ -1,19 +1,29 @@
 import type { Stats } from '../../api/stats';
 
+const STAT_CARDS = [
+  { key: 'total' as const, label: 'Total Cards', icon: 'group', iconColor: 'text-primary', iconBg: 'bg-primary-fixed-dim' },
+  { key: 'active' as const, label: 'Active Members', icon: 'verified_user', iconColor: 'text-tertiary-fixed-dim', iconBg: 'bg-tertiary-container/10' },
+  { key: 'expired' as const, label: 'Expired', icon: 'event_busy', iconColor: 'text-error', iconBg: 'bg-error-container' },
+  { key: 'suspended' as const, label: 'Suspended', icon: 'do_not_disturb_on', iconColor: 'text-secondary', iconBg: 'bg-secondary-fixed' },
+];
+
 export default function StatsRow({ stats }: { stats: Stats }) {
   return (
-    <div className="grid grid-cols-4 gap-3 mb-6">
-      {[
-        { label: 'Total Cards', value: stats.total, color: 'text-sky-400', border: 'border-sky-900' },
-        { label: 'Active', value: stats.active, color: 'text-green-400', border: 'border-green-900' },
-        { label: 'Expired', value: stats.expired, color: 'text-red-400', border: 'border-red-900' },
-        { label: 'Suspended', value: stats.suspended, color: 'text-yellow-400', border: 'border-yellow-900' },
-      ].map(({ label, value, color, border }) => (
-        <div key={label} className={`bg-slate-900 border ${border} rounded-lg p-3 text-center`}>
-          <div className={`text-2xl font-bold ${color}`}>{value}</div>
-          <div className="text-slate-500 text-xs mt-0.5">{label}</div>
+    <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {STAT_CARDS.map(({ key, label, icon, iconColor, iconBg }) => (
+        <div
+          key={key}
+          className="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_24px_rgba(25,28,29,0.04)] border border-white flex flex-col justify-between h-40"
+        >
+          <div className="flex justify-between items-start">
+            <span className={`material-symbols-outlined ${iconColor} ${iconBg} p-2 rounded-lg`}>{icon}</span>
+          </div>
+          <div>
+            <h4 className="text-on-surface-variant text-xs font-bold uppercase tracking-widest font-label">{label}</h4>
+            <p className="text-3xl font-headline font-extrabold text-primary">{stats[key].toLocaleString()}</p>
+          </div>
         </div>
       ))}
-    </div>
+    </section>
   );
 }

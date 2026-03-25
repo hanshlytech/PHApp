@@ -1,4 +1,3 @@
-// src/pages/vip/ServiceStep.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVipWizard } from '../../context/VipWizardContext';
@@ -25,7 +24,7 @@ export default function ServiceStep() {
   }, [card, selectedMember, navigate]);
 
   if (!card || !selectedMember) return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Redirecting...</div>
+    <div className="min-h-screen bg-[#0f1d2f] flex items-center justify-center text-slate-500">Redirecting...</div>
   );
 
   async function handleLogVisit() {
@@ -49,29 +48,28 @@ export default function ServiceStep() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center px-4 py-8">
-      <div className="w-full max-w-md flex flex-col gap-6">
-        {/* Header row */}
+    <div className="min-h-screen bg-[#0f1d2f] flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-2xl flex flex-col gap-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Select Service</h1>
-          <button
-            type="button"
-            onClick={() => navigate('/vip/scan')}
-            className="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors"
-          >
+          <div>
+            <h1 className="text-4xl font-headline font-black text-white">Select Service</h1>
+            <p className="text-slate-400 mt-1">Choose the service for this visit</p>
+          </div>
+          <button type="button" onClick={() => navigate('/vip/scan')}
+            className="text-[#8cda5a] hover:underline text-sm font-bold transition-colors">
             Re-scan
           </button>
         </div>
 
         {/* Visiting as */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl px-5 py-4">
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl px-6 py-4">
           <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Visiting as</p>
-          <p className="text-white text-lg font-semibold">{selectedMember.name}</p>
+          <p className="text-white text-xl font-headline font-bold">{selectedMember.name}</p>
           <p className="text-slate-400 text-sm mt-0.5 font-mono">{card.card_number}</p>
         </div>
 
         {/* Service grid */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {SERVICES.map((s) => (
             <ServiceOption
               key={s.service}
@@ -84,19 +82,17 @@ export default function ServiceStep() {
           ))}
         </div>
 
-        {/* Error */}
         {error && (
           <div className="bg-red-900/30 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
-        {/* Log Visit button */}
         <button
           type="button"
           onClick={handleLogVisit}
           disabled={!selectedService || loading}
-          className="w-full py-4 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-base transition-colors"
+          className="w-full py-6 bg-gradient-to-r from-[#8cda5a] to-[#6ab539] text-[#0a2100] rounded-2xl font-headline font-black text-xl uppercase tracking-widest shadow-[0_20px_40px_rgba(140,218,90,0.3)] hover:scale-[1.02] transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? 'Logging visit...' : 'Log Visit'}
         </button>

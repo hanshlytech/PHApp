@@ -1,7 +1,5 @@
-// src/pages/ReviewFlow.tsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { useBranch } from '../context/BranchContext'
 import ReviewForm from '../components/ReviewForm'
 import ReviewVariants from '../components/ReviewVariants'
@@ -51,24 +49,30 @@ export default function ReviewFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-surface page-enter">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft size={20} className="text-gray-600" />
-          </button>
-          <div>
-            <h1 className="font-semibold text-gray-900">Leave a Review</h1>
-            <p className="text-xs text-muted">{branch.name}</p>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-surface page-enter relative overflow-hidden">
+      {/* Ambient Background */}
+      <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-secondary-container/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-tertiary-fixed-dim/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="pb-8">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="p-2 -ml-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+            </button>
+            <h1 className="font-headline font-bold text-lg tracking-tight text-primary">
+              {step === 1 ? 'Share Your Experience' : 'Choose a Review'}
+            </h1>
+          </div>
+          <div className="text-sm font-semibold text-on-surface-variant">{branch.name}</div>
+        </div>
+      </header>
+
+      <main className="relative z-10 max-w-2xl mx-auto px-6 py-10">
         {step === 1 && (
           <ReviewForm
             value={form}
@@ -84,7 +88,7 @@ export default function ReviewFlow() {
             onBack={() => setStep(1)}
           />
         )}
-      </div>
+      </main>
     </div>
   )
 }

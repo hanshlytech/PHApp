@@ -1,20 +1,17 @@
-// src/components/vip/StatusBadge.tsx
 type StatusBadgeProps = {
   status: 'active' | 'expired' | 'suspended' | 'invalid';
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const styles: Record<string, string> = {
-    active: 'bg-green-900/60 text-green-300',
-    expired: 'bg-red-900/60 text-red-300',
-    suspended: 'bg-yellow-900/60 text-yellow-300',
-    invalid: 'bg-red-900/60 text-red-300',
+    active: 'bg-[#8cda5a] text-[#0a2100]',
+    expired: 'bg-error-container text-on-error-container',
+    suspended: 'bg-secondary-container text-on-secondary-container',
+    invalid: 'bg-error-container text-on-error-container',
   };
 
   return (
-    <span
-      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase ${styles[status] ?? styles.invalid}`}
-    >
+    <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${styles[status] ?? styles.invalid}`}>
       {status}
     </span>
   );
