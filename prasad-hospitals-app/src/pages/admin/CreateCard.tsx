@@ -83,14 +83,32 @@ export default function CreateCard() {
                   {BRANCHES.map(b => <option key={b}>{b}</option>)}
                 </select>
               </div>
-              {/* VIP Preview Card */}
+              {/* VIP Preview Card — live preview of form data */}
               <div className="pt-4 mt-6 border-t border-outline-variant/10">
-                <div className="h-32 rounded-xl signature-gradient relative overflow-hidden flex flex-col justify-end p-4">
+                <div className="rounded-xl signature-gradient relative overflow-hidden p-5 space-y-3">
                   <div className="absolute top-0 right-0 p-4 opacity-20">
                     <span className="material-symbols-outlined text-6xl">medical_services</span>
                   </div>
                   <div className="text-white/60 text-[10px] uppercase tracking-widest font-bold">VIP Membership Preview</div>
-                  <div className="text-white font-headline font-bold text-lg tracking-tight">Prasad Premium Care</div>
+                  <div className="text-white font-headline font-bold text-lg tracking-tight">
+                    {primary.name.trim() || 'Member Name'}
+                  </div>
+                  <div className="flex items-center gap-3 text-white/70 text-xs">
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">location_on</span>
+                      {branch}
+                    </span>
+                    {aadhaar && (
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">badge</span>
+                        XXXX-{aadhaar}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-white/50 text-[10px] uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-sm">group</span>
+                    {1 + dependents.filter(d => d.name.trim()).length} member{1 + dependents.filter(d => d.name.trim()).length !== 1 ? 's' : ''}
+                  </div>
                 </div>
               </div>
             </div>
